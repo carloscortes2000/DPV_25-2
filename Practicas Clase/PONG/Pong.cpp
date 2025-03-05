@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PI 3.1415926535898 
+#define PI 3.1415926535898
 
 // Area de juego 
 const int GAME_WIDTH = 320;
@@ -15,18 +15,18 @@ double xpos, ypos;           // posición actual de la bola
 double ballSpeedX, ballSpeedY;  // velocidades de la pelota en X y Y
 GLfloat RadiusOfBall = 7.0;  // tamano de la pelota
 
-GLfloat T1[16] = {1.,0.,0.,0.,\
-                  0.,1.,0.,0.,\
-                  0.,0.,1.,0.,\
-                  0.,0.,0.,1.};
-GLfloat S[16] = {1.,0.,0.,0.,\
-                 0.,1.,0.,0.,\
-                 0.,0.,1.,0.,\
-                 0.,0.,0.,1.};
-GLfloat T[16] = {1.,0.,0.,0.,\
-                 0., 1., 0., 0.,\
-                 0.,0.,1.,0.,\
-                 0.,0.,0.,1.};
+GLfloat T[16] = {1., 0., 0., 0.,
+                 0., 1., 0., 0.,
+                 0., 0., 1., 0.,
+                 0., 0., 0., 1.};
+GLfloat T1[16] = {1., 0., 0., 0.,
+                  0., 1., 0., 0.,
+                  0., 0., 1., 0.,
+                  0., 0., 0., 1.};
+GLfloat S[16] = {1., 0., 0., 0.,
+                 0., 1., 0., 0.,
+                 0., 0., 1., 0.,
+                 0., 0., 0., 1.};
 
 // Paletas
 const double paddleWidth = 2.0;
@@ -163,18 +163,13 @@ void Display(void) {
 }
 
 
-void reshape (int w, int h)
-{
-   // on reshape and on startup, keep the viewport to be the entire size of the window
-   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
-   glMatrixMode (GL_PROJECTION);
-   glLoadIdentity ();
-
-   // keep our logical coordinate system constant
-   gluOrtho2D(0.0, 160.0, 0.0, 120.0);
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity ();
-
+void reshape(int w, int h) {
+    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, GAME_WIDTH, 0.0, GAME_HEIGHT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 // Función para mover la paleta izquierda (teclas 'W' y 'S')
@@ -219,29 +214,35 @@ void specialKeys(int key, int x, int y) {
     }
 }
 
+void init(void) {
+    glClearColor(0.0, 0., 0.0, 1.0); // fondo negro
 
-void init(void){
-  //set the clear color to be white
-  glClearColor(0.0,0.8,0.0,1.0);
-  // initial position set to 0,0
-  xpos = 60; ypos = RadiusOfBall; xdir = 1; ydir = 1;
-  sx = 1.; sy = 1.; squash = 0.9;
-  rot = 0; 
+    // Posición y velocidad inicial de la bola
+    xpos = GAME_WIDTH / 2.0;
+    ypos = GAME_HEIGHT / 2.0;
+    ballSpeedX = 0.2;
+    ballSpeedY = 0.2;
 
+    // Inicializar las paletas
+    leftPaddleX = 5.0;
+    leftPaddleY = GAME_HEIGHT / 2.0 - paddleHeight / 2.0;
+    rightPaddleX = GAME_WIDTH - 5.0 - paddleWidth;
+    rightPaddleY = GAME_HEIGHT / 2.0 - paddleHeight / 2.0;
 }
 
+int main(int argc, char* argv[]) {
+    glutInit(&argc, argv);
+    // Tamaño de ventana más grande
+    glutInitWindowSize(640, 480);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutCreateWindow("Pong");
 
-int main(int argc, char* argv[])
-{
+    init();
+    glutDisplayFunc(Display);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeys);
+    glutMainLoop();
 
-  glutInit( & argc, argv );
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize (320, 240);   
-  glutCreateWindow("Pong");
-  init();
-  glutDisplayFunc(Display);
-  glutReshapeFunc(reshape);
-  glutMainLoop();
-
-  return 1;
+    return 0;
 }
