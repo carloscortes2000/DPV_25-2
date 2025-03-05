@@ -1,8 +1,7 @@
-//Example2_4.cpp : A bouncing ball 
-
 #include <GL/glut.h> //the glut file for windows operations
                      // it also includes gl.h and glu.h for the openGL library calls
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -35,6 +34,11 @@ const double paddleHeight = 20.0;
 double leftPaddleX, leftPaddleY;
 double rightPaddleX, rightPaddleY;
 
+// Marcador de puntaje
+int scoreLeft = 0, scoreRight = 0;
+
+// Control de inicio de juego
+bool gameStarted = false;
 
 GLint circle_points = 100;
 void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius) {
@@ -50,7 +54,7 @@ void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius) {
 
 // Dibuja la bola, centrada en el origen
 void draw_ball() {
-    glColor3f(0.6, 0.3, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
     MyCircle2f(0., 0., RadiusOfBall);
 }
 
@@ -65,81 +69,97 @@ void drawPaddle(double x, double y) {
     glEnd();
 }
 
-void Display(void)
-{
-  // swap the buffers
-  glutSwapBuffers(); 
+// Dibuja un texto centrado 
+void drawCenteredText(const char* text, float y) {
+    int len = (int) strlen(text);
+    int width = 0;
+    for (int i = 0; i < len; i++) {
+        width += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, text[i]);
+    }
+    float x = (GAME_WIDTH - width) / 2.0f;
+    glColor3f(1.0, 1.0, 1.0); // texto en blanco
+    glRasterPos2f(x, y);
+    for (int i = 0; i < len; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text[i]);
+    }
+}
 
-  //clear all pixels with the specified clear color
-  glClear(GL_COLOR_BUFFER_BIT);
-  // 160 is max X value in our world
-	// Define X position of the ball to be at center of window
-	xpos = 80.;
- 	
-	// Shape has hit the ground! Stop moving and start squashing down and then back up 
-	if (ypos == RadiusOfBall && ydir == -1  ) { 
-		sy = sy*squash ; 
-		
-		if (sy < 0.8)
-			// reached maximum suqash, now unsquash back up 
-			squash = 1.1;
-		else if (sy > 1.) {
-			// reset squash parameters and bounce ball back upwards
-			sy = 1.;
-			squash = 0.9;
-			ydir = 1;
-		}
-		sx = 1./sy;
-	} 
-	// 120 is max Y value in our world
-	// set Y position to increment 1.5 times the direction of the bounce
-	else {
-	ypos = ypos+ydir *1.5 - (1.-sy)*RadiusOfBall;
-	// If ball touches the top, change direction of ball downwards
-  	if (ypos == 120-RadiusOfBall)
-    	ydir = -1;
-	// If ball touches the bottom, change direction of ball upwards
-  	else if (ypos <RadiusOfBall)
-		ydir = 1;
-	}
-  
-/*  //reset transformation state 
-  glLoadIdentity();
-  
-  // apply translation
-  glTranslatef(xpos,ypos, 0.);
+void Display(void) {
+    glClear(GL_COLOR_BUFFER_BIT);
 
-  // Translate ball back to center
-  glTranslatef(0.,-RadiusOfBall, 0.);
-  // Scale the ball about its bottom
-  glScalef(sx,sy, 1.);
-  // Translate ball up so bottom is at the origin
-  glTranslatef(0.,RadiusOfBall, 0.);
-  // draw the ball
-  draw_ball();
-*/
- 
-  //Translate the bouncing ball to its new position
-  T[12]= xpos;
-  T[13] = ypos;
-  glLoadMatrixf(T);
+    // Si el juego no ha comenzado, mostrar mensaje de inicio
+    if (!gameStarted) {
+        glLoadIdentity();
+        drawCenteredText("Presiona espacio para empezar", GAME_HEIGHT / 2.0f);
+        glutSwapBuffers();
+        glutPostRedisplay();
+        return;
+    }
 
-  T1[13] = -RadiusOfBall;
-  // Translate ball back to center
-  glMultMatrixf(T1);
-  S[0] = sx;
-  S[5] = sy;
-  // Scale the ball about its bottom
-  glMultMatrixf(S);
-  T1[13] = RadiusOfBall;
-  // Translate ball up so bottom is at the origin
-  glMultMatrixf(T1);
-  
-  draw_ball();
-  glutPostRedisplay(); 
+    // Actualizamos la posición de la bola según su velocidad
+    xpos += ballSpeedX;
+    ypos += ballSpeedY;
 
-  
+    // Rebote en techo y piso
+    if (ypos + RadiusOfBall >= GAME_HEIGHT || ypos - RadiusOfBall <= 0)
+        ballSpeedY = -ballSpeedY;
 
+    // Colisión con la paleta izquierda
+    if (xpos - RadiusOfBall <= leftPaddleX + paddleWidth &&
+        ypos >= leftPaddleY && ypos <= leftPaddleY + paddleHeight &&
+        ballSpeedX < 0) {
+        ballSpeedX = fabs(ballSpeedX); // rebota hacia la derecha
+    }
+
+    // Colisión con la paleta derecha
+    if (xpos + RadiusOfBall >= rightPaddleX &&
+        ypos >= rightPaddleY && ypos <= rightPaddleY + paddleHeight &&
+        ballSpeedX > 0) {
+        ballSpeedX = -fabs(ballSpeedX); // rebota hacia la izquierda
+    }
+
+    if (xpos - RadiusOfBall < 0) {
+        scoreRight++;
+        printf("Puntuacion: Izquierda %d - Derecha %d\n", scoreLeft, scoreRight);
+        // Reiniciar la bola en el centro, moviéndose hacia la derecha
+        xpos = GAME_WIDTH / 2.0;
+        ypos = GAME_HEIGHT / 2.0;
+        ballSpeedX = fabs(ballSpeedX);
+    }
+    
+    if (xpos + RadiusOfBall > GAME_WIDTH) {
+        scoreLeft++;
+        printf("Puntuacion: Izquierda %d - Derecha %d\n", scoreLeft, scoreRight);
+        // Reiniciar la bola en el centro, moviéndose hacia la izquierda
+        xpos = GAME_WIDTH / 2.0;
+        ypos = GAME_HEIGHT / 2.0;
+        ballSpeedX = -fabs(ballSpeedX);
+    }
+
+    // Usar las matrices de transformación para posicionar la bola
+    T[12] = xpos;
+    T[13] = ypos;
+    glLoadMatrixf(T);
+
+    // Se mantiene el escalado en 1
+    S[0] = 1.0;
+    S[5] = 1.0;
+    T1[13] = -RadiusOfBall;
+    glMultMatrixf(T1);
+    glMultMatrixf(S);
+    T1[13] = RadiusOfBall;
+    glMultMatrixf(T1);
+
+    // Dibujar la bola
+    draw_ball();
+
+    // Reiniciar la matriz para dibujar las paletas sin transformaciones previas
+    glLoadIdentity();
+    drawPaddle(leftPaddleX, leftPaddleY);
+    drawPaddle(rightPaddleX, rightPaddleY);
+
+    glutSwapBuffers();
+    glutPostRedisplay();
 }
 
 
@@ -175,7 +195,7 @@ int main(int argc, char* argv[])
   glutInit( & argc, argv );
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (320, 240);   
-  glutCreateWindow("Bouncing Ball");
+  glutCreateWindow("Pong");
   init();
   glutDisplayFunc(Display);
   glutReshapeFunc(reshape);
