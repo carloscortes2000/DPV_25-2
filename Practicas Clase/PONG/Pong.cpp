@@ -177,6 +177,48 @@ void reshape (int w, int h)
 
 }
 
+// Función para mover la paleta izquierda (teclas 'W' y 'S')
+void keyboard(unsigned char key, int x, int y) {
+    const double step = 30.0;
+    if (!gameStarted) {
+        // Si aún no comenzó el juego, presionar espacio lo inicia
+        if (key == ' ') {
+            gameStarted = true;
+            return;
+        }
+    }
+    switch(key) {
+        case 'w':
+        case 'W':
+            if (leftPaddleY + paddleHeight + step <= GAME_HEIGHT)
+                leftPaddleY += step;
+            break;
+        case 's':
+        case 'S':
+            if (leftPaddleY - step >= 0)
+                leftPaddleY -= step;
+            break;
+        case 27: // tecla Esc para salir
+            exit(0);
+            break;
+    }
+}
+
+// Función para mover la paleta derecha (teclas de flecha arriba/abajo)
+void specialKeys(int key, int x, int y) {
+    const double step = 30.0;
+    switch(key) {
+        case GLUT_KEY_UP:
+            if (rightPaddleY + paddleHeight + step <= GAME_HEIGHT)
+                rightPaddleY += step;
+            break;
+        case GLUT_KEY_DOWN:
+            if (rightPaddleY - step >= 0)
+                rightPaddleY -= step;
+            break;
+    }
+}
+
 
 void init(void){
   //set the clear color to be white
