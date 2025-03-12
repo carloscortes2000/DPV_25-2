@@ -174,7 +174,7 @@ void reshape(int w, int h) {
 
 // Función para mover la paleta izquierda (teclas 'W' y 'S')
 void keyboard(unsigned char key, int x, int y) {
-    const double step = 30.0;
+    const double step = 25.0;
     if (!gameStarted) {
         // Si aún no comenzó el juego, presionar espacio lo inicia
         if (key == ' ') {
@@ -201,7 +201,7 @@ void keyboard(unsigned char key, int x, int y) {
 
 // Función para mover la paleta derecha (teclas de flecha arriba/abajo)
 void specialKeys(int key, int x, int y) {
-    const double step = 30.0;
+    const double step =25.0;
     switch(key) {
         case GLUT_KEY_UP:
             if (rightPaddleY + paddleHeight + step <= GAME_HEIGHT)
@@ -220,8 +220,8 @@ void init(void) {
     // Posición y velocidad inicial de la bola
     xpos = GAME_WIDTH / 2.0;
     ypos = GAME_HEIGHT / 2.0;
-    ballSpeedX = 0.2;
-    ballSpeedY = 0.2;
+    ballSpeedX = 0.19;
+    ballSpeedY = 0.19;
 
     // Inicializar las paletas
     leftPaddleX = 5.0;
